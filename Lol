@@ -1,0 +1,307 @@
+-- =============================================
+-- AQUA NOTIFIER UI
+-- 25% Transparent Black UI + Aqua Border
+-- =============================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- ScreenGui
+local gui = Instance.new("ScreenGui")
+gui.Name = "AquaNotifier"
+gui.ResetOnSpawn = false
+gui.DisplayOrder = 999
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+gui.Parent = playerGui
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Name = "MainFrame"
+frame.Size = UDim2.new(0, 350, 0, 500)
+frame.Position = UDim2.new(0.5, -175, 0.5, -250)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.25
+frame.BorderSizePixel = 0
+frame.ZIndex = 10
+frame.Parent = gui
+
+-- Rounded Corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 14)
+corner.Parent = frame
+
+-- =============================================
+-- TOP BAR (Compact)
+-- =============================================
+
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1, 0, 0, 32)
+topBar.BackgroundTransparency = 1
+topBar.ZIndex = 11
+topBar.Parent = frame
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(0, 200, 1, 0)
+title.Position = UDim2.new(0, 12, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Aqua Notifier"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.ZIndex = 12
+title.Parent = topBar
+
+-- Green Dot (RIGHT SIDE)
+local dot = Instance.new("Frame")
+dot.Name = "StatusDot"
+dot.Size = UDim2.new(0, 6, 0, 6)
+dot.Position = UDim2.new(1, -42, 0.5, -3)
+dot.BackgroundColor3 = Color3.fromRGB(57, 255, 138)
+dot.BorderSizePixel = 0
+dot.ZIndex = 12
+dot.Parent = topBar
+
+local dotCorner = Instance.new("UICorner")
+dotCorner.CornerRadius = UDim.new(1, 0)
+dotCorner.Parent = dot
+
+-- Minimize Button
+local minimize = Instance.new("TextButton")
+minimize.Name = "MinimizeBtn"
+minimize.Size = UDim2.new(0, 28, 0, 28)
+minimize.Position = UDim2.new(1, -32, 0, 2)
+minimize.BackgroundTransparency = 1
+minimize.Text = "-"
+minimize.TextColor3 = Color3.fromRGB(255,255,255)
+minimize.Font = Enum.Font.GothamBold
+minimize.TextSize = 18
+minimize.ZIndex = 12
+minimize.Parent = topBar
+
+-- =============================================
+-- TABS (Jew Joiner Style - Gray text always, WHITE borders)
+-- =============================================
+
+local tabBar = Instance.new("Frame")
+tabBar.Name = "TabBar"
+tabBar.Size = UDim2.new(1, -20, 0, 22)
+tabBar.Position = UDim2.new(0, 10, 0, 34)
+tabBar.BackgroundTransparency = 1
+tabBar.ZIndex = 11
+tabBar.Parent = frame
+
+local logsTab = Instance.new("TextButton")
+logsTab.Name = "LogsTab"
+logsTab.Size = UDim2.new(0, 55, 1, 0)
+logsTab.Position = UDim2.new(0, 0, 0, 0)
+logsTab.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+logsTab.BackgroundTransparency = 0.1
+logsTab.Text = "Logs"
+logsTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+logsTab.Font = Enum.Font.GothamBold
+logsTab.TextSize = 11
+logsTab.ZIndex = 12
+logsTab.Parent = tabBar
+
+local logsCorner = Instance.new("UICorner")
+logsCorner.CornerRadius = UDim.new(0, 4)
+logsCorner.Parent = logsTab
+
+local logsStroke = Instance.new("UIStroke")
+logsStroke.Color = Color3.fromRGB(255, 255, 255) -- WHITE active border
+logsStroke.Thickness = 1
+logsStroke.Transparency = 0.3
+logsStroke.Parent = logsTab
+
+local configTab = Instance.new("TextButton")
+configTab.Name = "ConfigTab"
+configTab.Size = UDim2.new(0, 55, 1, 0)
+configTab.Position = UDim2.new(0, 60, 0, 0)
+configTab.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+configTab.BackgroundTransparency = 0.1
+configTab.Text = "Config"
+configTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+configTab.Font = Enum.Font.GothamBold
+configTab.TextSize = 11
+configTab.ZIndex = 12
+configTab.Parent = tabBar
+
+local configCorner = Instance.new("UICorner")
+configCorner.CornerRadius = UDim.new(0, 4)
+configCorner.Parent = configTab
+
+local configStroke = Instance.new("UIStroke")
+configStroke.Color = Color3.fromRGB(60, 60, 60) -- Dark gray inactive border
+configStroke.Thickness = 1
+configStroke.Transparency = 0.3
+configStroke.Parent = configTab
+
+-- =============================================
+-- TAB CONTENT FRAMES
+-- =============================================
+
+local logsContent = Instance.new("ScrollingFrame")
+logsContent.Name = "LogsContent"
+logsContent.Size = UDim2.new(1, -16, 1, -62)
+logsContent.Position = UDim2.new(0, 8, 0, 60)
+logsContent.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+logsContent.BackgroundTransparency = 0.3
+logsContent.BorderSizePixel = 0
+logsContent.ScrollBarThickness = 3
+logsContent.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255) -- White scrollbar
+logsContent.Visible = true
+logsContent.ZIndex = 11
+logsContent.Parent = frame
+
+local logsContentCorner = Instance.new("UICorner")
+logsContentCorner.CornerRadius = UDim.new(0, 6)
+logsContentCorner.Parent = logsContent
+
+local configContent = Instance.new("Frame")
+configContent.Name = "ConfigContent"
+configContent.Size = UDim2.new(1, -16, 1, -62)
+configContent.Position = UDim2.new(0, 8, 0, 60)
+configContent.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+configContent.BackgroundTransparency = 0.3
+configContent.BorderSizePixel = 0
+configContent.Visible = false
+configContent.ZIndex = 11
+configContent.Parent = frame
+
+local configContentCorner = Instance.new("UICorner")
+configContentCorner.CornerRadius = UDim.new(0, 6)
+configContentCorner.Parent = configContent
+
+-- =============================================
+-- TAB SWITCHING LOGIC (White borders, gray text always)
+-- =============================================
+
+local function switchTab(tabName)
+	if tabName == "Logs" then
+		logsTab.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+		configTab.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+		logsTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+		configTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+		logsStroke.Color = Color3.fromRGB(255, 255, 255) -- WHITE active
+		configStroke.Color = Color3.fromRGB(60, 60, 60) -- Dark inactive
+		logsContent.Visible = true
+		configContent.Visible = false
+	else
+		logsTab.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+		configTab.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+		logsTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+		configTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+		logsStroke.Color = Color3.fromRGB(60, 60, 60) -- Dark inactive
+		configStroke.Color = Color3.fromRGB(255, 255, 255) -- WHITE active
+		logsContent.Visible = false
+		configContent.Visible = true
+	end
+end
+
+logsTab.MouseButton1Click:Connect(function()
+	switchTab("Logs")
+end)
+
+configTab.MouseButton1Click:Connect(function()
+	switchTab("Config")
+end)
+
+-- Set default active tab
+switchTab("Logs")
+
+-- =============================================
+-- MINIMIZE LOGIC
+-- =============================================
+
+local opened = true
+local openedSize = UDim2.new(0, 350, 0, 500)
+local closedSize = UDim2.new(0, 350, 0, 32)
+
+minimize.MouseButton1Click:Connect(function()
+	opened = not opened
+
+	if opened then
+		frame.Size = openedSize
+		logsContent.Visible = (logsStroke.Color == Color3.fromRGB(255, 255, 255))
+		configContent.Visible = (configStroke.Color == Color3.fromRGB(255, 255, 255))
+		tabBar.Visible = true
+		minimize.Text = "-"
+	else
+		frame.Size = closedSize
+		logsContent.Visible = false
+		configContent.Visible = false
+		tabBar.Visible = false
+		minimize.Text = "+"
+	end
+end)
+
+-- =============================================
+-- AQUA GLOWING RACETRACK BORDER
+-- =============================================
+
+local function addRacetrackBorder(targetFrame)
+    if not targetFrame or not targetFrame:IsA("Frame") then return end
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Name = "RacetrackBorder"
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Thickness = 6
+    stroke.Color = Color3.fromRGB(0, 255, 255)
+    stroke.Transparency = 0.15
+    stroke.Parent = targetFrame
+
+    local grad = Instance.new("UIGradient")
+    grad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0,   Color3.fromRGB(0, 25, 25)),
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(0, 255, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(120, 255, 255)),
+        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(0, 255, 255)),
+        ColorSequenceKeypoint.new(1,   Color3.fromRGB(0, 25, 25)),
+    }
+    grad.Parent = stroke
+
+    local startTime = tick()
+    local conn
+
+    conn = RunService.Heartbeat:Connect(function()
+        if not targetFrame.Parent then
+            conn:Disconnect()
+            return
+        end
+
+        local W = targetFrame.AbsoluteSize.X
+        local H = targetFrame.AbsoluteSize.Y
+        if W <= 0 or H <= 0 then return end
+
+        local perim = (W + H) * 2
+        local elapsed = (tick() - startTime) % 2.7
+        local progress = elapsed / 2.7
+        local dist = (progress * perim) % perim
+        local rot = 0
+
+        if dist < W then
+            rot = (dist / W) * 90
+        elseif dist < W + H then
+            rot = 90 + ((dist - W) / H) * 90
+        elseif dist < W*2 + H then
+            rot = 180 + ((dist - W - H) / W) * 90
+        else
+            rot = 270 + ((dist - W*2 - H) / H) * 90
+        end
+
+        grad.Rotation = rot
+
+        local wave = math.sin(progress * math.pi * 2)
+        stroke.Transparency = 0.05 + wave * 0.25
+        stroke.Thickness = 6 + math.sin(tick() * 8) * 0.3
+    end)
+end
+
+addRacetrackBorder(frame)
