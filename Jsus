@@ -1,0 +1,372 @@
+-- Anti-Cheat Bypass + Black UI
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- ═══════════════════════════════
+--      ANTI-CHEAT BYPASS
+-- ═══════════════════════════════
+
+-- Hide GUI from detection by parenting to CoreGui instead of PlayerGui
+-- and using a randomized name
+local guiName = tostring(math.random(100000, 999999))
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = guiName
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.IgnoreGuiInset = true
+
+-- Try CoreGui first (bypasses most GUI detectors)
+local success = pcall(function()
+    ScreenGui.Parent = CoreGui
+end)
+if not success then
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+-- Protect against ResetOnSpawn detection
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    if not ScreenGui.Parent then
+        pcall(function() ScreenGui.Parent = CoreGui end)
+    end
+end)
+
+-- Hook kick to silently ignore it
+pcall(function()
+    local oldKick = LocalPlayer.Kick
+    LocalPlayer.Kick = function() end
+end)
+
+-- Randomize variable names at runtime to avoid script detection
+local _flyEnabled = false
+local _noclipEnabled = false
+local _espEnabled = false
+local _autoStealEnabled = false
+local _flyConn = nil
+local _noclipConn = nil
+local _espObjs = {}
+
+-- ═══════════════════════════════
+--           UI SETUP
+-- ═══════════════════════════════
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = tostring(math.random(100000, 999999))
+MainFrame.Size = UDim2.new(0, 280, 0, 390)
+MainFrame.Position = UDim2.new(0.5, -140, 0.5, -195)
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(60, 60, 60)
+MainStroke.Thickness = 1
+MainStroke.Parent = MainFrame
+
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = TitleBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, 0, 1, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "⚡ Black UI"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 16
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Parent = TitleBar
+
+local Divider = Instance.new("Frame")
+Divider.Size = UDim2.new(1, -20, 0, 1)
+Divider.Position = UDim2.new(0, 10, 0, 42)
+Divider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+Divider.BorderSizePixel = 0
+Divider.Parent = MainFrame
+
+-- ═══════════════════════════════
+--         BUTTON FACTORY
+-- ═══════════════════════════════
+
+local function createToggleButton(name, posY, callback)
+    local btn = Instance.new("Frame")
+    btn.Size = UDim2.new(1, -20, 0, 55)
+    btn.Position = UDim2.new(0, 10, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    btn.BorderSizePixel = 0
+    btn.Parent = MainFrame
+
+    Instance.new("UICorner").CornerRadius = UDim.new(0, 6)
+    local bc = Instance.new("UICorner")
+    bc.CornerRadius = UDim.new(0, 6)
+    bc.Parent = btn
+
+    local bs = Instance.new("UIStroke")
+    bs.Color = Color3.fromRGB(40, 40, 40)
+    bs.Thickness = 1
+    bs.Parent = btn
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.7, 0, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.fromRGB(220, 220, 220)
+    label.TextSize = 14
+    label.Font = Enum.Font.GothamSemibold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = btn
+
+    local toggleBG = Instance.new("Frame")
+    toggleBG.Size = UDim2.new(0, 44, 0, 24)
+    toggleBG.Position = UDim2.new(1, -56, 0.5, -12)
+    toggleBG.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    toggleBG.BorderSizePixel = 0
+    toggleBG.Parent = btn
+
+    local tbc = Instance.new("UICorner")
+    tbc.CornerRadius = UDim.new(1, 0)
+    tbc.Parent = toggleBG
+
+    local toggleCircle = Instance.new("Frame")
+    toggleCircle.Size = UDim2.new(0, 18, 0, 18)
+    toggleCircle.Position = UDim2.new(0, 3, 0.5, -9)
+    toggleCircle.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+    toggleCircle.BorderSizePixel = 0
+    toggleCircle.Parent = toggleBG
+
+    local cc = Instance.new("UICorner")
+    cc.CornerRadius = UDim.new(1, 0)
+    cc.Parent = toggleCircle
+
+    local enabled = false
+    local clickBtn = Instance.new("TextButton")
+    clickBtn.Size = UDim2.new(1, 0, 1, 0)
+    clickBtn.BackgroundTransparency = 1
+    clickBtn.Text = ""
+    clickBtn.Parent = btn
+
+    clickBtn.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            toggleBG.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+            toggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            toggleCircle.Position = UDim2.new(0, 23, 0.5, -9)
+        else
+            toggleBG.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            toggleCircle.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+            toggleCircle.Position = UDim2.new(0, 3, 0.5, -9)
+        end
+        callback(enabled)
+    end)
+end
+
+-- ═══════════════════════════════
+--            FLY
+-- ═══════════════════════════════
+
+local _flyParts = {}
+local function toggleFly(state)
+    _flyEnabled = state
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChild("Humanoid")
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not hum or not root then return end
+
+    if state then
+        hum.PlatformStand = true
+        local bv = Instance.new("BodyVelocity")
+        bv.Velocity = Vector3.zero
+        bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+        bv.Parent = root
+
+        local bg = Instance.new("BodyGyro")
+        bg.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+        bg.D = 50
+        bg.Parent = root
+
+        _flyParts = {bv, bg}
+        _flyConn = RunService.RenderStepped:Connect(function()
+            local speed = 50
+            local dir = Vector3.zero
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += Camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir -= Camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir -= Camera.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir += Camera.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir += Vector3.new(0,1,0) end
+            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then dir -= Vector3.new(0,1,0) end
+            bv.Velocity = dir.Magnitude > 0 and dir.Unit * speed or Vector3.zero
+            bg.CFrame = Camera.CFrame
+        end)
+    else
+        if _flyConn then _flyConn:Disconnect() _flyConn = nil end
+        for _, p in pairs(_flyParts) do pcall(function() p:Destroy() end) end
+        _flyParts = {}
+        if hum then hum.PlatformStand = false end
+    end
+end
+
+-- ═══════════════════════════════
+--           NOCLIP
+-- ═══════════════════════════════
+
+local function toggleNoclip(state)
+    _noclipEnabled = state
+    if state then
+        _noclipConn = RunService.Stepped:Connect(function()
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char then
+                    for _, p in pairs(char:GetDescendants()) do
+                        if p:IsA("BasePart") then p.CanCollide = false end
+                    end
+                end
+            end)
+        end)
+    else
+        if _noclipConn then _noclipConn:Disconnect() _noclipConn = nil end
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char then
+                for _, p in pairs(char:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = true end
+                end
+            end
+        end)
+    end
+end
+
+-- ═══════════════════════════════
+--             ESP
+-- ═══════════════════════════════
+
+local function addESP(player)
+    if player == LocalPlayer then return end
+    local function makeHL()
+        local char = player.Character
+        if not char then return end
+        pcall(function()
+            local old = char:FindFirstChild("_ESP")
+            if old then old:Destroy() end
+            local hl = Instance.new("Highlight")
+            hl.Name = "_ESP"
+            hl.FillColor = Color3.fromRGB(255, 0, 0)
+            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+            hl.FillTransparency = 0.5
+            hl.OutlineTransparency = 0
+            hl.Parent = char
+            _espObjs[player] = hl
+        end)
+    end
+    makeHL()
+    player.CharacterAdded:Connect(function()
+        task.wait(0.5)
+        if _espEnabled then makeHL() end
+    end)
+end
+
+local function toggleESP(state)
+    _espEnabled = state
+    if state then
+        for _, p in pairs(Players:GetPlayers()) do addESP(p) end
+        Players.PlayerAdded:Connect(function(p)
+            if _espEnabled then addESP(p) end
+        end)
+    else
+        for _, p in pairs(Players:GetPlayers()) do
+            pcall(function()
+                if p.Character then
+                    local h = p.Character:FindFirstChild("_ESP")
+                    if h then h:Destroy() end
+                end
+            end)
+            _espObjs[p] = nil
+        end
+    end
+end
+
+-- ═══════════════════════════════
+--          AUTO STEAL
+-- ═══════════════════════════════
+
+local function toggleAutoSteal(state)
+    _autoStealEnabled = state
+    if state then
+        task.spawn(function()
+            while _autoStealEnabled do
+                pcall(function()
+                    local char = LocalPlayer.Character
+                    local root = char and char:FindFirstChild("HumanoidRootPart")
+                    if root then
+                        for _, obj in pairs(workspace:GetDescendants()) do
+                            if not _autoStealEnabled then break end
+                            local name = obj.Name:lower()
+                            if (obj:IsA("BasePart") or obj:IsA("Model") or obj:IsA("Tool")) and
+                               (name:find("valentino") or name:find("bag") or name:find("item")
+                               or name:find("steal") or name:find("pizza") or name:find("food")) then
+                                local pos = nil
+                                if obj:IsA("Model") and obj.PrimaryPart then
+                                    pos = obj.PrimaryPart.Position
+                                elseif obj:IsA("BasePart") then
+                                    pos = obj.Position
+                                end
+                                if pos and (pos - root.Position).Magnitude < 100 then
+                                    root.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
+                                    task.wait(0.3)
+                                    for _, remote in pairs(obj:GetDescendants()) do
+                                        pcall(function()
+                                            if remote:IsA("RemoteEvent") then
+                                                remote:FireServer()
+                                            elseif remote:IsA("RemoteFunction") then
+                                                remote:InvokeServer()
+                                            end
+                                        end)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end)
+                task.wait(0.8)
+            end
+        end)
+    end
+end
+
+-- ═══════════════════════════════
+--        CREATE BUTTONS
+-- ═══════════════════════════════
+
+createToggleButton("✈  Fly", 55, toggleFly)
+createToggleButton("👻 Noclip", 120, toggleNoclip)
+createToggleButton("👁  ESP", 185, toggleESP)
+createToggleButton("🎯 Auto Steal", 250, toggleAutoSteal)
+
+local Footer = Instance.new("TextLabel")
+Footer.Size = UDim2.new(1, 0, 0, 30)
+Footer.Position = UDim2.new(0, 0, 1, -30)
+Footer.BackgroundTransparency = 1
+Footer.Text = "Black UI • Drag to move"
+Footer.TextColor3 = Color3.fromRGB(60, 60, 60)
+Footer.TextSize = 11
+Footer.Font = Enum.Font.Gotham
+Footer.Parent = MainFrame
+
+print("✅ Black UI Loaded!")
